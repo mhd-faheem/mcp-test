@@ -7,6 +7,18 @@ from pydantic import AnyHttpUrl
 
 from utils.auth import create_auth0_verifier
 
+from fastapi import FastAPI
+from fastapi.responses import FileResponse
+
+viewer = FastAPI()
+
+@viewer.get("/website/{filename}")
+def serve_file(filename: str):
+    path = os.path.join("website", filename)
+    if not os.path.exists(path):
+        return {"error": "File not found"}
+    return FileResponse(path)
+
 
 # -----------------------------
 # Load environment variables
@@ -216,4 +228,5 @@ def update_file_tool(file: str, changes: list) -> dict:
 if __name__ == "__main__":
     ensure_files_exist()
     print("Website Builder MCP running with Auth0 OAuth…")
-    mcp.run(transport="streamable-http")
+    mcp.run(transport="streamable-http", other_app=viewer)
+
